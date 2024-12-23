@@ -2,6 +2,7 @@ package com.aseds.aithssainesbaiti.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,9 +12,13 @@ import lombok.Setter;
 @Setter
 public class Transaction {
     @JsonProperty("sender")
+    @JsonSerialize(using = HashedIdSerializer.class)
     private int senderId;
+
     @JsonProperty("recipient")
+    @JsonSerialize(using = HashedIdSerializer.class)
     private int recipientId;
+
     @JsonProperty("amount")
     private double amount;
 
@@ -35,15 +40,12 @@ public class Transaction {
         return amount;
     }
 
-
     @Override
     public String toString() {
         try {
             return new ObjectMapper().writeValueAsString(this);
         } catch (Exception e) {
-            throw new RuntimeException("Error serializing Block to JSON", e);
+            throw new RuntimeException("Error serializing Transaction to JSON", e);
         }
     }
-
-
 }

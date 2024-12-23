@@ -24,7 +24,6 @@ public class BlockchainController {
     public Block addBlock(@RequestBody Transaction data) {
         return blockchainService.addBlock(data);
     }
-
     @GetMapping("/validate")
     public boolean validateBlockchain() {
         return blockchainService.isBlockchainValid();

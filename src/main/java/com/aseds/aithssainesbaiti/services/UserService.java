@@ -15,4 +15,7 @@ public class UserService {
         users.put(user.getId(), user);
         return user;
     }
+    public double getSold(int id) {
+        return users.get(id).getSold();
+    }
 }

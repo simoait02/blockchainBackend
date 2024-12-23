@@ -1,9 +1,6 @@
 package com.aseds.aithssainesbaiti.services;
 
-import com.aseds.aithssainesbaiti.domain.Block;
-import com.aseds.aithssainesbaiti.domain.Blockchain;
-import com.aseds.aithssainesbaiti.domain.HashUtils;
-import com.aseds.aithssainesbaiti.domain.Transaction;
+import com.aseds.aithssainesbaiti.domain.*;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,18 +11,23 @@ public class MiningService {
         this.blockchainService = blockchainService;
     }
     public Block mineBlock() {
-
         Blockchain blockchain = blockchainService.getBlockchain();
         for (Transaction transaction:TransactionService.getPendingTransactions()){
             Block lastBlock = blockchain.getLatestBlock();
             int proof = generateProofOfWork(lastBlock.getProof());
-            Block newBlock = new Block(
-                    blockchain.getChain().size(),
-                    lastBlock.getHash(),
-                    transaction,
-                    proof
-            );
-            blockchain.addBlock(newBlock.getData());
+            if(UserService.users.get(transaction.getSenderId()).getSold()>transaction.getAmount()){
+                Block newBlock = new Block(
+                        blockchain.getChain().size(),
+                        lastBlock.getHash(),
+                        transaction,
+                        proof
+                );
+                blockchain.addBlock(newBlock.getData());
+                TransactionService.removeTransaction(transaction);
+            }else {
+                System.out.println(transaction.getSenderId() + " de " + transaction.getAmount()+" a "+ transaction.getRecipientId() +" removed");
+                TransactionService.removeTransaction(transaction);
+            }
         }
         return blockchain.getLatestBlock();
     }

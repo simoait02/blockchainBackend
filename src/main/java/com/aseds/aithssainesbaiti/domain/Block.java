@@ -13,7 +13,7 @@ public class Block {
     public Block(int index, String previousHash, Transaction data, int proof) {
         this.index = index;
         this.previousHash = previousHash;
-        this.data = data; // Store the Transaction object (not a JSON string)
+        this.data = data;
         this.timestamp = System.currentTimeMillis();
         this.proof = proof;
         this.hash = calculateHash();

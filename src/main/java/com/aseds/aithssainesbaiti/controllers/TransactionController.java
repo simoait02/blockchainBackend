@@ -17,7 +17,7 @@ public class TransactionController {
 
     @PostMapping
     public Transaction createTransaction(@RequestBody Transaction transaction) {
-        return transactionService.addTransaction(transaction.getSender(),transaction.getRecipient(),transaction.getAmount());
+        return transactionService.addTransaction(transaction.getSenderId(),transaction.getRecipientId(),transaction.getAmount());
     }
 
     @GetMapping

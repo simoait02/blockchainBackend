@@ -1,38 +1,34 @@
 package com.aseds.aithssainesbaiti.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @NoArgsConstructor
 @Getter
 @Setter
 public class Transaction {
     @JsonProperty("sender")
-    private String sender;
+    private int senderId;
     @JsonProperty("recipient")
-    private String recipient;
+    private int recipientId;
     @JsonProperty("amount")
     private double amount;
 
-    public Transaction(String sender, String recipient, double amount) {
-        this.sender = sender;
-        this.recipient = recipient;
+    public Transaction(int senderId, int recipientId, double amount) {
+        this.senderId = senderId;
+        this.recipientId = recipientId;
         this.amount = amount;
     }
 
-    public String getSender() {
-        return sender;
+    public int getSenderId() {
+        return senderId;
     }
 
-    public String getRecipient() {
-        return recipient;
+    public int getRecipientId() {
+        return recipientId;
     }
 
     public double getAmount() {

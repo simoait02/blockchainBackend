@@ -16,7 +16,7 @@ public class Blockchain {
     }
 
     private Block createGenesisBlock() {
-        return new Block(0, "0", new Transaction("simo","s0",10), 0);
+        return new Block(0, "0", new Transaction(0,0,0), 0);
     }
 
     public Block getLatestBlock() {

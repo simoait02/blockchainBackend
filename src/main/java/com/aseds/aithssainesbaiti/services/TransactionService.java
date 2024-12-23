@@ -13,7 +13,7 @@ public class TransactionService {
     public TransactionService() {
         pendingTransactions = new ArrayList<>();
     }
-    public Transaction addTransaction(String sender, String recipient, double amount) {
+    public Transaction addTransaction(int sender, int recipient, double amount) {
         Transaction transaction = new Transaction(sender, recipient, amount);
         pendingTransactions.add(transaction);
         return transaction;
@@ -22,6 +22,9 @@ public class TransactionService {
     public static List<Transaction> getPendingTransactions() {
         return new ArrayList<>(pendingTransactions);
     }
+    public static void removeTransaction(Transaction transaction) {
+        pendingTransactions.remove(transaction);
+    }
 
     public void clearPendingTransactions() {
         pendingTransactions.clear();
@@ -29,7 +32,7 @@ public class TransactionService {
 
     public List<Transaction> prepareTransactionsForMining(String minerAddress) {
         List<Transaction> transactionsForMining = new ArrayList<>(pendingTransactions);
-        transactionsForMining.add(new Transaction("System", minerAddress, 50.0)); // Example reward
+        transactionsForMining.add(new Transaction(0, 0, 50.0));
         return transactionsForMining;
     }
 }

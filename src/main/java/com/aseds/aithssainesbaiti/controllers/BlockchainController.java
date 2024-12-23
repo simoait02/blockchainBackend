@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/blockchain")
 public class BlockchainController {
     private final BlockchainService blockchainService;
-
     public BlockchainController(BlockchainService blockchainService) {
         this.blockchainService = blockchainService;
     }

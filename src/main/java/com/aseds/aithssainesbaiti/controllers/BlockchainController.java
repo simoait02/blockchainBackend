@@ -30,4 +30,3 @@ public class BlockchainController {
         return blockchainService.isBlockchainValid();
     }
 }
-

@@ -12,11 +12,9 @@ import lombok.Setter;
 @Setter
 public class Transaction {
     @JsonProperty("sender")
-    @JsonSerialize(using = HashedIdSerializer.class)
     private int senderId;
 
     @JsonProperty("recipient")
-    @JsonSerialize(using = HashedIdSerializer.class)
     private int recipientId;
 
     @JsonProperty("amount")

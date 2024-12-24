@@ -24,4 +24,7 @@ public class UserService {
     public static void updateSolde(int id, double sold) {
         users.get(id).setSold(sold);
     }
+    public List<Transaction> getHistory(int id) {
+        return history.get(id);
+    }
 }

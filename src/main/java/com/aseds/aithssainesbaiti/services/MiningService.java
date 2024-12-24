@@ -3,6 +3,9 @@ package com.aseds.aithssainesbaiti.services;
 import com.aseds.aithssainesbaiti.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class MiningService {
     private final BlockchainService blockchainService;
@@ -25,6 +28,20 @@ public class MiningService {
                 blockchain.addBlock(newBlock.getData());
                 UserService.updateSolde(transaction.getSenderId(), UserService.getSold(transaction.getSenderId())-transaction.getAmount());
                 UserService.updateSolde(transaction.getRecipientId(), UserService.getSold(transaction.getRecipientId())+transaction.getAmount());
+                if(UserService.history.get(transaction.getRecipientId())!=null){
+                    UserService.history.get(transaction.getSenderId()).add(transaction);
+                }else{
+                    List<Transaction> transactions = new ArrayList<>();
+                    transactions.add(transaction);
+                    UserService.history.put(transaction.getSenderId(), transactions);
+                }
+                if(UserService.history.get(transaction.getRecipientId())!=null){
+                    UserService.history.get(transaction.getRecipientId()).add(transaction);
+                }else {
+                    List<Transaction> transactions = new ArrayList<>();
+                    transactions.add(transaction);
+                    UserService.history.put(transaction.getRecipientId(), transactions);
+                }
                 TransactionService.removeTransaction(transaction);
             }else {
                 System.out.println(transaction.getSenderId() + " de " + transaction.getAmount()+" a "+ transaction.getRecipientId() +" removed");

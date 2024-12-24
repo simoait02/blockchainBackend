@@ -20,4 +20,8 @@ public class UserController {
     public User getUser(@PathVariable int id) {
         return userService.getUser(id);
     }
+    @GetMapping("sold/{id}")
+    public double getSold(@PathVariable int id) {
+        return UserService.getSold(id);
+    }
 }

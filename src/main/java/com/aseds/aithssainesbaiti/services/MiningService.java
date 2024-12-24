@@ -15,7 +15,7 @@ public class MiningService {
         for (Transaction transaction:TransactionService.getPendingTransactions()){
             Block lastBlock = blockchain.getLatestBlock();
             int proof = generateProofOfWork(lastBlock.getProof());
-            if(UserService.users.get(transaction.getSenderId()).getSold()>transaction.getAmount()){
+            if(UserService.users.get(transaction.getSenderId()).getSold()>transaction.getAmount() && UserService.users.get(transaction.getRecipientId())!=null){
                 Block newBlock = new Block(
                         blockchain.getChain().size(),
                         lastBlock.getHash(),
@@ -23,6 +23,8 @@ public class MiningService {
                         proof
                 );
                 blockchain.addBlock(newBlock.getData());
+                UserService.updateSolde(transaction.getSenderId(), UserService.getSold(transaction.getSenderId())-transaction.getAmount());
+                UserService.updateSolde(transaction.getRecipientId(), UserService.getSold(transaction.getRecipientId())+transaction.getAmount());
                 TransactionService.removeTransaction(transaction);
             }else {
                 System.out.println(transaction.getSenderId() + " de " + transaction.getAmount()+" a "+ transaction.getRecipientId() +" removed");

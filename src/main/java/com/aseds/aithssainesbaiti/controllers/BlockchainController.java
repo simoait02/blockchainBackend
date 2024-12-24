@@ -6,6 +6,8 @@ import com.aseds.aithssainesbaiti.domain.Transaction;
 import com.aseds.aithssainesbaiti.services.BlockchainService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/blockchain")
 public class BlockchainController {
@@ -20,7 +22,7 @@ public class BlockchainController {
     }
 
     @PostMapping("/add-block")
-    public Block addBlock(@RequestBody Transaction data) {
+    public Block addBlock(@RequestBody List<Transaction> data) {
         return blockchainService.addBlock(data);
     }
     @GetMapping("/validate")

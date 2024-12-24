@@ -5,6 +5,8 @@ import com.aseds.aithssainesbaiti.domain.Blockchain;
 import com.aseds.aithssainesbaiti.domain.Transaction;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class BlockchainService {
     private final Blockchain blockchain;
@@ -13,7 +15,7 @@ public class BlockchainService {
         this.blockchain = new Blockchain();
     }
 
-    public Block addBlock(Transaction data) {
+    public Block addBlock(List<Transaction> data) {
         return blockchain.addBlock(data);
     }
 

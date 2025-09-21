@@ -2,7 +2,6 @@ package com.aseds.aithssainesbaiti.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,18 +23,6 @@ public class Transaction {
         this.senderId = senderId;
         this.recipientId = recipientId;
         this.amount = amount;
-    }
-
-    public int getSenderId() {
-        return senderId;
-    }
-
-    public int getRecipientId() {
-        return recipientId;
-    }
-
-    public double getAmount() {
-        return amount;
     }
 
     @Override

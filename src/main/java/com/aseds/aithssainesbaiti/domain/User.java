@@ -3,8 +3,6 @@ package com.aseds.aithssainesbaiti.domain;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashMap;
-import java.util.Map;
 
 @Setter
 public class User {
@@ -19,6 +17,7 @@ public class User {
         this.name = name;
         this.sold = sold;
     }
+
 
     public int getId() {
         return id;

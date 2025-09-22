@@ -24,26 +24,28 @@ pipeline {
             }
         }
 
-        parallel {
-			stage("Code Quality") {
-				agent {
-					docker {
-						image "${MAVEN_IMAGE}"
-						args "${MAVEN_ARGS}"
-					}
-				}
-				steps {
+        stage("Quality Checks") {
+			parallel {
+				stage("Code Quality") {
+					agent {
+						docker {
+							image "${MAVEN_IMAGE}"
+                            args "${MAVEN_ARGS}"
+                        }
+                    }
+                    steps {
 						sh 'mvn checkstyle:checkstyle'
-					recordIssues(tools: [checkStyle(pattern: 'target/checkstyle-result.xml')])
-				}
-        	}
-        	stage("hadolint") {
-				steps{
-					sh "hadolint Dockerfile --no-fail -f json | tee -a hadolint.json"
-					recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
-				}
-			}
-		}
+                        recordIssues(tools: [checkStyle(pattern: 'target/checkstyle-result.xml')])
+                    }
+                }
 
+                stage("Hadolint") {
+					steps {
+						sh "hadolint Dockerfile --no-fail -f json | tee -a hadolint.json"
+                        recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
+                    }
+                }
+            }
+        }
     }
 }

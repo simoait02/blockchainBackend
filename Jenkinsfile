@@ -105,7 +105,7 @@ pipeline {
 				snykSecurity(
 					snykInstallation: 'snyk',
 					snykTokenId: 'snyk-token',
-					additionalArguments: '--docker simo3011w/blockchain_app:latest --file Dockerfile',
+					additionalArguments: '--docker simo3011w/blockchain_app:latest --file=Dockerfile',
 					failOnError: false
 				)
 			}

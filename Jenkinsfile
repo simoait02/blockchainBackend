@@ -99,6 +99,17 @@ pipeline {
 				sh 'docker build -t simo3011w/blockchain_app:latest .'
             }
         }
+        stage ("snyk test"){
+			agent any
+			steps{
+				snykSecurity(
+					snykInstallation: 'snyk',
+					snykTokenId: 'snyk-token',
+					additionalArguments: '--docker simo3011w/blockchain_app:latest --file Dockerfile',
+					failOnError: false
+				)
+			}
+		}
     }
 
     post {

@@ -5,17 +5,17 @@ pipeline {
 			agent {
 				docker {
 					image 'maven:4.0.0-rc-4-eclipse-temurin-17'
-                    args '''
-                        -v $WORKSPACE:/app
-                        -v $HOME/.m2:/root/.m2
-                        -e HOME=/root
-                        -w /app
-                    '''
-                }
-            }
-            steps {
+                args '''
+                    -v $WORKSPACE:/app
+                    -v /tmp/maven-cache:/root/.m2
+                    -w /app
+                    --user root
+                '''
+             }
+          }
+          steps {
 				sh 'mvn clean package'
-            }
-        }
+          }
+       }
     }
 }

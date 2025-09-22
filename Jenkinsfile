@@ -1,37 +1,36 @@
 pipeline {
 	agent any
-
-    environment {
-		MAVEN_IMAGE = 'maven:4.0.0-rc-4-eclipse-temurin-17'
-        MAVEN_ARGS = '''
-            -v $WORKSPACE:/app
-            -v /tmp/maven-cache:/root/.m2
-            -w /app
-            --user root
-        '''
-    }
-
     stages {
-		stage("Code Stability Check") {
+		stage("code stability check") {
 			agent {
 				docker {
-					image "${MAVEN_IMAGE}"
-                    args "${MAVEN_ARGS}"
-                }
-            }
-            steps {
+					image 'maven:4.0.0-rc-4-eclipse-temurin-17'
+					args '''
+						-v $WORKSPACE:/app
+						-v /tmp/maven-cache:/root/.m2
+						-w /app
+						--user root
+					'''
+				}
+          	}
+          steps {
 				sh 'mvn clean package'
-            }
-        }
+          }
+       }
 
-        stage("Quality Checks") {
+       stage("Quality Checks") {
 			parallel {
 				stage("Code Quality") {
 					agent {
 						docker {
-							image "${MAVEN_IMAGE}"
-                            args "${MAVEN_ARGS}"
-                        }
+							image 'maven:4.0.0-rc-4-eclipse-temurin-17'
+							args '''
+								-v $WORKSPACE:/app
+								-v /tmp/maven-cache:/root/.m2
+								-w /app
+								--user root
+							'''
+						}
                     }
                     steps {
 						sh 'mvn checkstyle:checkstyle'

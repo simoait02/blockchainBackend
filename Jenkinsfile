@@ -66,6 +66,31 @@ pipeline {
 			}
 		}
 
+		stage ("owasp dependency check") {
+			agent {
+				docker {
+					image 'maven:4.0.0-rc-4-eclipse-temurin-17'
+					args '''
+						-v $WORKSPACE:/app
+						-v /tmp/maven-cache:/root/.m2
+						-w /app
+						--user root
+					'''
+                }
+			}
+			steps{
+				sh 'mvn org.owasp:dependency-check-maven:check'
+				publishHTML([allowMissing: false, alwaysLinkToLastBuild:false, keepAll: false, reportDir: 'target', reportFiles:'dependency-check-report.html', reportName: 'Dependency Check Report', reportTitles: ''])
+			}
+		}
+
+		stage("build docker image") {
+			agent any
+			steps {
+				sh 'docker build -t simo3011w/blockchain_app:latest .
+			}
+		}
+
     }
 
     post {

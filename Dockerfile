@@ -7,7 +7,7 @@ COPY src /app/src
 RUN mvn clean package
 
 
-FROM openjdk:23-jdk-slim
+FROM openjdk:26-jdk-slim
 WORKDIR /app
 RUN useradd -m mah
 

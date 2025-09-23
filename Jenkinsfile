@@ -172,6 +172,17 @@ pipeline {
 			}
 		}
 		stage("Merge Dev to Staging") {
+			agent {
+				docker {
+					image 'maven:4.0.0-rc-4-eclipse-temurin-17'
+                    args '''
+                        -v $WORKSPACE:/app
+                        -v /tmp/maven-cache:/root/.m2
+                        -w /app
+                        --user root
+                    '''
+                }
+            }
 			steps {
 				sh '''
 				git checkout staging

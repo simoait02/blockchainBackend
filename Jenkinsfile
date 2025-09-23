@@ -185,6 +185,7 @@ pipeline {
             }
 			steps {
 				sh '''
+				chown -R root:root /app
 				git checkout staging
 				git merge dev --no-ff -m "Merge dev into staging"
 				git push origin staging

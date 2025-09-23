@@ -123,8 +123,8 @@ pipeline {
 		stage("Push Image to Registry") {
 			agent any
 			steps {
-				script {
-					def userChoice = input(
+						script {
+							def userChoice = input(
 						message: 'Do you want to push the Docker image to the registry?',
 						parameters: [
 							choice(choices: ['No', 'Yes'], description: 'Select Yes to push', name: 'PushApproval')
@@ -132,16 +132,18 @@ pipeline {
 					)
 
 					if (userChoice == 'Yes') {
-						echo "Approval received, pushing image..."
-						// Add Docker Hub login
+								echo "Approval received, pushing image..."
+
 						withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials',
 														usernameVariable: 'DOCKER_USERNAME',
 														passwordVariable: 'DOCKER_PASSWORD')]) {
-							sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+									// Use --password-stdin for security
+							sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
 							sh 'docker push simo3011w/blockchain_app:latest'
+							sh 'docker logout' // Good practice to logout after push
 						}
 					} else {
-						echo "Push skipped by user."
+								echo "Push skipped by user."
 					}
 				}
 			}

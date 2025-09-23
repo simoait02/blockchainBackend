@@ -142,18 +142,27 @@ pipeline {
 							AUTH=$(echo -n "$DOCKER_USERNAME:$DOCKER_PASSWORD" | base64 -w 0)
 
 							# Create Docker config with stored credentials
-							cat > ~/.docker/config.json << EOF
+							cat > ~/.docker/config.json << 'EOF'
 		{
 			"auths": {
 				"https://index.docker.io/v1/": {
-					"auth": "$AUTH"
+					"auth": "AUTH_PLACEHOLDER"
 				}
 			}
 		}
 		EOF
 
+							# Replace the placeholder with actual auth string
+							sed -i "s/AUTH_PLACEHOLDER/$AUTH/g" ~/.docker/config.json
+
+							# Verify config was created
+							echo "Docker config created:"
+							cat ~/.docker/config.json
+
 							# Now push directly (no need for docker login)
 							docker push simo3011w/blockchain_app:latest
+
+							echo "✓ Image pushed successfully!"
 						'''
 					}
 				}

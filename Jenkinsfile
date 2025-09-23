@@ -134,13 +134,26 @@ pipeline {
 													usernameVariable: 'DOCKER_USERNAME',
 													passwordVariable: 'DOCKER_PASSWORD')]) {
 								sh '''
-							# Simple fix - just remove the existing docker config
+							# Remove existing config
 							rm -rf ~/.docker
+							mkdir -p ~/.docker
 
-							# Login and push
-							echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+							# Create base64 encoded auth string (username:password)
+							AUTH=$(echo -n "$DOCKER_USERNAME:$DOCKER_PASSWORD" | base64 -w 0)
+
+							# Create Docker config with stored credentials
+							cat > ~/.docker/config.json << EOF
+		{
+			"auths": {
+				"https://index.docker.io/v1/": {
+					"auth": "$AUTH"
+				}
+			}
+		}
+		EOF
+
+							# Now push directly (no need for docker login)
 							docker push simo3011w/blockchain_app:latest
-							docker logout
 						'''
 					}
 				}

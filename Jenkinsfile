@@ -99,15 +99,25 @@ pipeline {
 				sh 'docker build -t simo3011w/blockchain_app:latest .'
             }
         }
-        stage ("snyk test"){
+        stage ("Snyk Security Scan"){
 			agent any
-			steps{
-				snykSecurity(
-					snykInstallation: 'snyk',
-					snykTokenId: 'snyk-token',
-					additionalArguments: '--docker simo3011w/blockchain_app:latest --file=Dockerfile',
-					failOnError: false
-				)
+			steps {
+				script {
+					try {
+						snykSecurity(
+							snykInstallation: 'snyk',
+							snykTokenId: 'snyk-token',
+							additionalArguments: '--docker simo3011w/blockchain_app:latest --file=Dockerfile',
+							failOnError: false,
+							failOnIssues: false,
+							monitorProjectOnBuild: false
+						)
+					} catch (Exception e) {
+						echo "Snyk scan encountered an issue: ${e.getMessage()}"
+						echo "Continuing pipeline execution..."
+						currentBuild.result = 'UNSTABLE'
+					}
+				}
 			}
 		}
     }

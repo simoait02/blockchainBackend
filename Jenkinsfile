@@ -124,26 +124,22 @@ pipeline {
 			agent any
 			steps {
 				script {
-					docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials') {
-						def userChoice = input(
-							message: 'Do you want to push the Docker image to the registry?',
-							parameters: [
-								choice(choices: ['No', 'Yes'], description: 'Select Yes to push', name: 'PushApproval')
-							]
-						)
+					def userChoice = input(
+						message: 'Do you want to push the Docker image to the registry?',
+						parameters: [
+							choice(choices: ['No', 'Yes'], description: 'Select Yes to push', name: 'PushApproval')
+						]
+					)
 
-						if (userChoice == 'Yes') {
-							echo "Approval received, pushing image..."
-							sh 'docker push simo3011w/blockchain_app:latest'
-						} else {
-							echo "Push skipped by user."
-						}
+					if (userChoice == 'Yes') {
+								echo "Approval received, pushing image..."
+						sh 'docker push simo3011w/blockchain_app:latest'
+					} else {
+								echo "Push skipped by user."
 					}
 				}
 			}
 		}
-
-
     }
 
     post {

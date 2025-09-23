@@ -97,11 +97,8 @@ pipeline {
 			agent any
             steps {
 				sh 'docker build -t simo3011w/blockchain_app:latest .'
-                // Verify the image was built
-                sh 'docker images | grep simo3011w/blockchain_app'
             }
         }
-
         stage ("Snyk Security Scan"){
 			agent any
 			steps {
@@ -123,46 +120,29 @@ pipeline {
 				}
 			}
 		}
-
 		stage("Push Image to Registry") {
 			agent any
 			steps {
 						script {
-							echo "Pushing image to Docker Hub..."
-
-					withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials',
+							withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials',
 													usernameVariable: 'DOCKER_USERNAME',
 													passwordVariable: 'DOCKER_PASSWORD')]) {
 								sh '''
-							# Remove existing config
-							rm -rf ~/.docker
+							# Initialize pass with your GPG key
+							pass init 51905CE936D9D4AC388E305B7C8DE2A8341FE095
+
+							# Create Docker config to use pass
 							mkdir -p ~/.docker
+							echo '{"credsStore":"pass"}' > ~/.docker/config.json
 
-							# Create base64 encoded auth string (username:password)
-							AUTH=$(echo -n "$DOCKER_USERNAME:$DOCKER_PASSWORD" | base64 -w 0)
+							# Login using credentials from Jenkins
+							docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 
-							# Create Docker config with stored credentials
-							cat > ~/.docker/config.json << 'EOF'
-		{
-			"auths": {
-				"https://index.docker.io/v1/": {
-					"auth": "AUTH_PLACEHOLDER"
-				}
-			}
-		}
-		EOF
-
-							# Replace the placeholder with actual auth string
-							sed -i "s/AUTH_PLACEHOLDER/$AUTH/g" ~/.docker/config.json
-
-							# Verify config was created
-							echo "Docker config created:"
-							cat ~/.docker/config.json
-
-							# Now push directly (no need for docker login)
+							# Push the image
 							docker push simo3011w/blockchain_app:latest
 
-							echo "✓ Image pushed successfully!"
+							# Logout for security
+							docker logout
 						'''
 					}
 				}

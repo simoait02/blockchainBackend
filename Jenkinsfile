@@ -128,21 +128,46 @@ pipeline {
 													usernameVariable: 'DOCKER_USERNAME',
 													passwordVariable: 'DOCKER_PASSWORD')]) {
 								sh '''
-							# Initialize pass with your GPG key
-							pass init 51905CE936D9D4AC388E305B7C8DE2A8341FE095
+							# Create GPG key configuration
+							cat > /tmp/gpg-key-config << EOF
+		%echo Generating GPG key for Jenkins Docker
+		Key-Type: RSA
+		Key-Length: 2048
+		Subkey-Type: RSA
+		Subkey-Length: 2048
+		Name-Real: Jenkins Docker
+		Name-Email: jenkins@docker.local
+		Expire-Date: 0
+		%no-protection
+		%commit
+		%echo GPG key created
+		EOF
+
+							# Generate GPG key
+							gpg --batch --generate-key /tmp/gpg-key-config
+
+							# Get the key ID
+							GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | cut -d'/' -f2 | cut -d' ' -f1)
+							echo "Generated GPG Key ID: $GPG_KEY_ID"
+
+							# Initialize pass with the new key
+							pass init $GPG_KEY_ID
 
 							# Create Docker config to use pass
 							mkdir -p ~/.docker
 							echo '{"credsStore":"pass"}' > ~/.docker/config.json
 
-							# Login using credentials from Jenkins
-							docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+							# Login using password-stdin
+							echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 							# Push the image
 							docker push simo3011w/blockchain_app:latest
 
-							# Logout for security
+							# Logout
 							docker logout
+
+							# Cleanup
+							rm /tmp/gpg-key-config
 						'''
 					}
 				}

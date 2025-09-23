@@ -132,10 +132,16 @@ pipeline {
 					)
 
 					if (userChoice == 'Yes') {
-								echo "Approval received, pushing image..."
-						sh 'docker push simo3011w/blockchain_app:latest'
+						echo "Approval received, pushing image..."
+						// Add Docker Hub login
+						withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials',
+														usernameVariable: 'DOCKER_USERNAME',
+														passwordVariable: 'DOCKER_PASSWORD')]) {
+							sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+							sh 'docker push simo3011w/blockchain_app:latest'
+						}
 					} else {
-								echo "Push skipped by user."
+						echo "Push skipped by user."
 					}
 				}
 			}

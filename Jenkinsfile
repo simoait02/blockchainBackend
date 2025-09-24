@@ -43,17 +43,19 @@ pipeline {
                     }
                 }
 
-                agent {
-					docker {
-						image 'hadolint/hadolint:latest'
-						args '-v $WORKSPACE:/app -w /app'
+                stage("Hadolint") {
+					agent {
+						docker {
+							image 'hadolint/hadolint:latest'
+							args '-v $WORKSPACE:/app -w /app'
+						}
 					}
-				}
-				steps {
-					sh 'hadolint Dockerfile --no-fail -f json | tee hadolint.json'
-					recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
-				}
+					steps {
+						sh 'hadolint Dockerfile --no-fail -f json | tee hadolint.json'
+						recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
+					}
 
+                }
             }
         }
 

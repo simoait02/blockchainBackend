@@ -66,60 +66,36 @@ pipeline {
                     }
                 }
 
-                stage("Hadolint") {
-					steps {
-						script {
-							sh '''
-                                echo "Running Hadolint Docker linting..."
+                pipeline {
+					agent any
 
-                                # Check if Dockerfile exists
-                                if [ ! -f "Dockerfile" ]; then
-                                    echo "Dockerfile not found, creating empty result"
-                                    echo "[]" > hadolint.json
-                                    exit 0
-                                fi
+					stages {
+						stage('Hadolint') {
+							steps {
+								script {
+													// Ensure Dockerfile exists
+									if (!fileExists('Dockerfile')) {
+														writeFile file: 'hadolint.json', text: '[]'
+										echo "Dockerfile not found, created empty hadolint.json"
+									} else {
+										sh '''
+											docker run --rm -i \
+												-v "$WORKSPACE":/workspace \
+												-w /workspace \
+												hadolint/hadolint:latest \
+												hadolint Dockerfile --no-fail -f json > hadolint.json || echo "[]" > hadolint.json
+										'''
+									}
+								}
+								recordIssues(
+									enabledForFailure: true,
+									tools: [hadoLint(pattern: 'hadolint.json')]
+								)
+							}
+						}
+					}
+				}
 
-                                # Try to install hadolint if not available
-                                if ! command -v hadolint &> /dev/null; then
-                                    echo "Installing Hadolint..."
-
-                                    # Try to install hadolint
-                                    if sudo -n true 2>/dev/null; then
-                                        # We have sudo access
-                                        if command -v wget &> /dev/null; then
-                                            sudo wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 && sudo chmod +x /usr/local/bin/hadolint
-                                        elif command -v curl &> /dev/null; then
-                                            sudo curl -L https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint && sudo chmod +x /usr/local/bin/hadolint
-                                        fi
-                                    fi
-                                fi
-
-                                # Run hadolint
-                                if command -v hadolint &> /dev/null; then
-                                    echo "Running hadolint directly..."
-                                    hadolint Dockerfile --no-fail -f json > hadolint.json || echo "[]" > hadolint.json
-                                else
-                                    echo "Using Docker to run hadolint..."
-                                    # Use Docker as fallback
-                                    docker run --rm -i \
-                                        -v "$WORKSPACE":/workspace \
-                                        -w /workspace \
-                                        hadolint/hadolint:latest \
-                                        hadolint Dockerfile --no-fail -f json > hadolint.json || echo "[]" > hadolint.json
-                                fi
-
-                                # Ensure file exists and is not empty
-                                if [ ! -s hadolint.json ]; then
-                                    echo "[]" > hadolint.json
-                                fi
-                            '''
-                        }
-                        recordIssues(
-                            enabledForFailure: true,
-                            tools: [hadoLint(pattern: 'hadolint.json')]
-                        )
-                    }
-                }
             }
         }
 
@@ -229,41 +205,27 @@ pipeline {
 
         stage("Merge Dev into Staging") {
 			steps {
-				script {
-					withCredentials([usernamePassword(credentialsId: 'my-github',
-                                                    usernameVariable: 'GIT_USERNAME',
-                                                    passwordVariable: 'GIT_PASSWORD')]) {
-						sh '''
-                            echo "Configuring Git..."
-                            git config user.name "Jenkins CI"
-                            git config user.email "jenkins@example.com"
+				sh '''
+					echo 'Configuring Git...'
+					git config user.name "Jenkins CI"
+					git config user.email "jenkins@example.com"
+					git config credential.helper 'store --file=.git-credentials'
 
-                            # Configure Git credentials
-                            git config credential.helper 'store --file=.git-credentials'
-                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com" > .git-credentials
+					echo 'Fetching latest changes...'
+					git fetch origin
 
-                            echo "Fetching latest changes..."
-                            git fetch origin
+					echo 'Checking out staging branch...'
+					git fetch origin staging:staging
+					git checkout staging
 
-                            echo "Checking out staging branch..."
-                            git checkout staging
+					echo 'Merging dev into staging...'
+					git merge origin/dev --no-ff -m "Automated merge dev into staging"
 
-                            echo "Merging dev into staging..."
-                            git merge origin/dev --no-ff -m "Automated merge dev into staging [skip ci]"
-
-                            echo "Pushing changes..."
-                            git push origin staging
-
-                            echo "Cleaning up credentials..."
-                            rm -f .git-credentials
-                            git config --unset credential.helper
-
-                            echo "Merge completed successfully!"
-                        '''
-                    }
-                }
-            }
-        }
+					echo 'Pushing updated staging branch...'
+					git push origin staging
+				'''
+			}
+		}
     }
 
     post {

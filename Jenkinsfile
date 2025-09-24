@@ -43,13 +43,17 @@ pipeline {
                     }
                 }
 
-                stage("Hadolint") {
-					agent any
-                    steps {
-						sh "hadolint Dockerfile --no-fail -f json | tee -a hadolint.json"
-                        recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
-                    }
-                }
+                agent {
+					docker {
+						image 'hadolint/hadolint:latest'
+						args '-v $WORKSPACE:/app -w /app'
+					}
+				}
+				steps {
+					sh 'hadolint Dockerfile --no-fail -f json | tee hadolint.json'
+					recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
+				}
+
             }
         }
 

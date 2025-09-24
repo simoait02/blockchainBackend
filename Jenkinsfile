@@ -66,38 +66,32 @@ pipeline {
                     }
                 }
 
-                pipeline {
-					agent any
-
-					stages {
-						stage('Hadolint') {
-							steps {
-								script {
-													// Ensure Dockerfile exists
-									if (!fileExists('Dockerfile')) {
-														writeFile file: 'hadolint.json', text: '[]'
-										echo "Dockerfile not found, created empty hadolint.json"
-									} else {
-										sh '''
-											docker run --rm -i \
-												-v "$WORKSPACE":/workspace \
-												-w /workspace \
-												hadolint/hadolint:latest \
-												hadolint Dockerfile --no-fail -f json > hadolint.json || echo "[]" > hadolint.json
-										'''
-									}
-								}
-								recordIssues(
-									enabledForFailure: true,
-									tools: [hadoLint(pattern: 'hadolint.json')]
-								)
+				stage('Hadolint') {
+					steps {
+						script {
+											// Ensure Dockerfile exists
+							if (!fileExists('Dockerfile')) {
+												writeFile file: 'hadolint.json', text: '[]'
+								echo "Dockerfile not found, created empty hadolint.json"
+							} else {
+								sh '''
+									docker run --rm -i \
+										-v "$WORKSPACE":/workspace \
+										-w /workspace \
+										hadolint/hadolint:latest \
+										hadolint Dockerfile --no-fail -f json > hadolint.json || echo "[]" > hadolint.json
+								'''
 							}
 						}
+						recordIssues(
+							enabledForFailure: true,
+							tools: [hadoLint(pattern: 'hadolint.json')]
+						)
 					}
 				}
+			}
+		}
 
-            }
-        }
 
         stage("Code Coverage") {
 			steps {

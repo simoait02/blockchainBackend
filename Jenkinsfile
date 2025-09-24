@@ -171,24 +171,16 @@ pipeline {
 				}
 			}
 		}
-		stage("Merge Dev to Staging") {
-			agent {
-				docker {
-					image 'maven:4.0.0-rc-4-eclipse-temurin-17'
-                    args '''
-                        -v $WORKSPACE:/app
-                        -v /tmp/maven-cache:/root/.m2
-                        -w /app
-                        --user root
-                    '''
-                }
-            }
+		stage("Merge Dev into Staging") {
 			steps {
 				sh '''
-				chown -R root:root /app
-				git checkout staging
-				git merge dev --no-ff -m "Merge dev into staging"
-				git push origin staging
+					git config user.name "Jenkins CI"
+					git config user.email "jenkins@example.com"
+
+					git fetch origin
+					git checkout staging
+					git merge origin/dev --no-ff -m "Automated merge dev into staging"
+					git push origin staging
 				'''
 			}
 		}

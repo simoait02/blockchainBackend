@@ -11,7 +11,10 @@ pipeline {
                         -v /tmp/maven-cache:/root/.m2
                         -w /app
                         --user root
+                        -v /var/run/docker.sock:/var/run/docker.sock
                     '''
+                    // Reuse the same workspace instead of creating @2
+                    reuseNode true
                 }
             }
             steps {
@@ -31,6 +34,7 @@ pipeline {
                                 -w /app
                                 --user root
                             '''
+                            reuseNode true
                         }
                     }
                     steps {
@@ -40,7 +44,7 @@ pipeline {
                 }
 
                 stage("Hadolint") {
-					agent any // Runs on local Jenkins agent
+					agent any
                     steps {
 						sh "hadolint Dockerfile --no-fail -f json | tee -a hadolint.json"
                         recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
@@ -59,6 +63,7 @@ pipeline {
                         -w /app
                         --user root
                     '''
+                    reuseNode true
                 }
             }
             steps {
@@ -77,6 +82,7 @@ pipeline {
                         -w /app
                         --user root
                     '''
+                    reuseNode true
                 }
             }
             steps {
@@ -99,91 +105,71 @@ pipeline {
 				sh 'docker build -t simo3011w/blockchain_app:latest .'
             }
         }
+
         stage ("Snyk Security Scan"){
 			agent any
-			steps {
+            steps {
 				script {
 					try {
 						snykSecurity(
-							snykInstallation: 'snyk',
-							snykTokenId: 'snyk-token',
-							additionalArguments: '--docker simo3011w/blockchain_app:latest --file=Dockerfile',
-							failOnError: false,
-							failOnIssues: false,
-							monitorProjectOnBuild: false
-						)
-					} catch (Exception e) {
+                            snykInstallation: 'snyk',
+                            snykTokenId: 'snyk-token',
+                            additionalArguments: '--docker simo3011w/blockchain_app:latest --file=Dockerfile',
+                            failOnError: false,
+                            failOnIssues: false,
+                            monitorProjectOnBuild: false
+                        )
+                    } catch (Exception e) {
 						echo "Snyk scan encountered an issue: ${e.getMessage()}"
-						echo "Continuing pipeline execution..."
-						currentBuild.result = 'UNSTABLE'
-					}
-				}
-			}
-		}
-		stage("Push Image to Registry") {
+                        echo "Continuing pipeline execution..."
+                        currentBuild.result = 'UNSTABLE'
+                    }
+                }
+            }
+        }
+
+        stage("Push Image to Registry") {
 			agent any
-			steps {
+            steps {
 				script {
 					withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials',
-												usernameVariable: 'DOCKER_USERNAME',
-												passwordVariable: 'DOCKER_PASSWORD')]) {
+                                                usernameVariable: 'DOCKER_USERNAME',
+                                                passwordVariable: 'DOCKER_PASSWORD')]) {
 						sh '''
-							# Create GPG key configuration file
-							echo "%echo Generating GPG key for Jenkins Docker" > /tmp/gpg-key-config
-							echo "Key-Type: RSA" >> /tmp/gpg-key-config
-							echo "Key-Length: 2048" >> /tmp/gpg-key-config
-							echo "Subkey-Type: RSA" >> /tmp/gpg-key-config
-							echo "Subkey-Length: 2048" >> /tmp/gpg-key-config
-							echo "Name-Real: Jenkins Docker" >> /tmp/gpg-key-config
-							echo "Name-Email: jenkins@docker.local" >> /tmp/gpg-key-config
-							echo "Expire-Date: 0" >> /tmp/gpg-key-config
-							echo "%no-protection" >> /tmp/gpg-key-config
-							echo "%commit" >> /tmp/gpg-key-config
-							echo "%echo GPG key created" >> /tmp/gpg-key-config
+                            # Simple Docker login and push
+                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                            docker push simo3011w/blockchain_app:latest
+                            docker logout
+                        '''
+                    }
+                }
+            }
+        }
 
-							# Generate GPG key
-							gpg --batch --generate-key /tmp/gpg-key-config
-
-							# Get the key ID
-							GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | cut -d'/' -f2 | cut -d' ' -f1)
-							echo "Generated GPG Key ID: $GPG_KEY_ID"
-
-							# Initialize pass with the new key
-							pass init $GPG_KEY_ID
-
-							# Create Docker config to use pass
-							mkdir -p ~/.docker
-							echo '{"credsStore":"pass"}' > ~/.docker/config.json
-
-							# Login using password-stdin
-							echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
-							# Push the image
-							docker push simo3011w/blockchain_app:latest
-
-							# Logout
-							docker logout
-
-							# Cleanup
-							rm /tmp/gpg-key-config
-						'''
-					}
-				}
-			}
-		}
-		stage("Merge Dev into Staging") {
+        stage("Merge Dev into Staging") {
 			steps {
-				sh '''
-					git config user.name "Jenkins CI"
-					git config user.email "jenkins@example.com"
+				withCredentials([usernamePassword(credentialsId: 'my-github',
+                                                usernameVariable: 'GIT_USERNAME',
+                                                passwordVariable: 'GIT_PASSWORD')]) {
+					sh '''
+                        git config user.name "Jenkins CI"
+                        git config user.email "jenkins@example.com"
 
-					git fetch origin
-					git checkout staging
-					git merge origin/dev --no-ff -m "Automated merge dev into staging"
-					git push origin staging
-				'''
-			}
-		}
+                        # Set up authentication
+                        git config credential.helper store
+                        echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com" > ~/.git-credentials
+
+                        git fetch origin
+                        git checkout staging
+                        git merge origin/dev --no-ff -m "Automated merge dev into staging"
+                        git push origin staging
+
+                        # Clean up credentials
+                        rm ~/.git-credentials
+                    '''
+                }
+            }
+        }
     }
 
     post {

@@ -1,7 +1,7 @@
 pipeline {
 	stages {
 		stage("test") {
-			sh 'hello world?
+			sh 'hello world"
 		}
 	}
 }
